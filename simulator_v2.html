@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>勝率シミュレーター v2（選手スタッツ版）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#12233D;--ink:#14243A;--sub:#46546A;--mute:#6B7686;--bg:#F5F3EE;--bg2:#E6ECF2;--card:#FFFFFF;--line:#D3DAE3;--orange:#F08A24;--od:#A9490A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;font-size:16px;line-height:1.6}
+.num{font-family:"Oswald","Noto Sans JP",sans-serif;letter-spacing:.03em}
+header{background:var(--navy);color:#fff;padding:26px 0 22px}
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+.eyebrow{font-family:Oswald,sans-serif;color:var(--orange);letter-spacing:.18em;font-size:14px}
+h1{font-size:30px;font-weight:700;line-height:1.3}
+.lead{color:#C9D4E0;font-size:15px;margin-top:4px}
+main{padding:24px 0 60px}
+.step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:20px}
+.step h2{font-size:20px;display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.step h2 .n{font-family:Oswald,sans-serif;background:var(--navy);color:#fff;border-radius:8px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+.hint{font-size:14px;color:var(--mute)}
+.drop{display:block;margin-top:14px;border:2px dashed #8A99AD;border-radius:12px;background:var(--bg2);padding:22px;text-align:center;cursor:pointer}
+.drop.over{background:#D3DCE7;border-color:var(--navy)}
+.drop b{color:var(--navy)} .drop input{display:none}
+.loaded{margin-top:10px;font-size:14px;color:var(--sub)}
+.loaded.ok{color:#1F7A4D;font-weight:700} .loaded.ng{color:#B3261E;font-weight:700}
+.team{border:1px solid var(--line);border-radius:12px;padding:18px 20px;background:#FCFBF8;margin-top:16px}
+.team.us{border-top:5px solid var(--navy)} .team.op{border-top:5px solid var(--od)}
+.team h3{font-size:18px;margin-bottom:10px}
+.top{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.top label{font-size:13px;color:var(--mute);margin-right:6px}
+input[type=text],select{font:inherit;font-size:15px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:#fff;color:var(--ink)}
+.lineup{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start}
+.court{display:grid;grid-template-columns:repeat(3,230px);gap:8px}
+.court .net{grid-column:1/4;text-align:center;font-family:Oswald,sans-serif;letter-spacing:.3em;color:var(--mute);font-size:12px;border-bottom:3px solid var(--navy);margin-bottom:2px}
+.slot{background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+.slot .p{font-family:Oswald,sans-serif;font-size:13px;color:var(--od)}
+.slot select{width:100%;font-size:14px;padding:4px 6px}
+.slot.lib{grid-column:1/4;display:flex;gap:10px;align-items:center}
+.slot.lib select{width:auto;flex:1}
+.lnote{font-size:13px;color:var(--mute);max-width:360px}
+.lnote b{color:var(--sub)}
+details.roster{margin-top:14px}
+details summary{cursor:pointer;font-weight:700;color:var(--sub);font-size:15px}
+.tw{overflow-x:auto;margin-top:8px}
+table.rs{border-collapse:collapse;font-size:13px;white-space:nowrap}
+.rs th{background:var(--bg2);color:var(--sub);font-weight:500;padding:4px 6px;border:1px solid var(--line);text-align:center}
+.rs th.g{background:var(--navy);color:#fff}
+.rs td{border:1px solid var(--line);padding:2px 4px;text-align:center;background:#fff}
+.rs td.nm{text-align:left;padding:2px 8px;max-width:170px;overflow:hidden;text-overflow:ellipsis}
+.rs td.calc{background:#F3F5F8;font-family:Oswald,"Noto Sans JP",sans-serif;font-size:14px;color:var(--ink)}
+.rs tr.onc td{background:#FFF7EE} .rs tr.onc td.calc{background:#FBEADB}
+.rs input{font:inherit;font-family:Oswald,"Noto Sans JP",sans-serif;font-size:14px;width:56px;text-align:right;border:1px solid transparent;border-radius:4px;padding:2px 4px;background:transparent}
+.rs input:hover,.rs input:focus{border-color:var(--line);background:#fff}
+.rs input.nmi{width:150px;text-align:left;font-family:"Noto Sans JP",sans-serif}
+.rs select{font-size:13px;padding:1px 2px}
+.rs .del{border:none;background:none;color:var(--mute);cursor:pointer;font-size:15px}
+.btn{font:inherit;font-size:14px;border:1px solid var(--line);background:#fff;color:var(--sub);border-radius:8px;padding:5px 12px;cursor:pointer;margin-top:8px}
+.btn:hover{border-color:var(--navy);color:var(--navy)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;flex-wrap:wrap}
+.seg button{font:inherit;border:none;background:none;padding:8px 14px;cursor:pointer;color:var(--sub);font-size:15px;border-left:1px solid var(--line)}
+.seg button:first-child{border-left:none}
+.seg button.on{background:var(--navy);color:#fff}
+.seg.rot button{font-family:Oswald,sans-serif;font-size:18px;min-width:56px}
+.seg.rot button.on{background:var(--od)}
+.opts{display:grid;grid-template-columns:auto 1fr;gap:12px 18px;align-items:center;margin-top:14px}
+.opts .k{font-size:14px;color:var(--sub);font-weight:700}
+.go{margin-top:20px;font:inherit;font-size:20px;font-weight:700;background:var(--orange);color:var(--navy);border:none;border-radius:12px;padding:14px 34px;cursor:pointer}
+.go:hover{filter:brightness(1.05)}
+.err{color:#B3261E;font-size:14px;margin-top:10px;font-weight:700}
+#result{display:none}
+.headline{background:var(--navy);color:#fff;border-radius:12px;padding:16px 20px;font-size:19px;margin:12px 0 18px}
+.headline b{color:var(--orange);font-family:Oswald,"Noto Sans JP",sans-serif;font-size:24px}
+.bars{display:flex;flex-direction:column;gap:12px}
+.bar{display:grid;grid-template-columns:150px 1fr 110px 120px;gap:14px;align-items:center}
+.bar .lab{font-size:16px;color:var(--sub)} .bar .lab b{font-family:Oswald,sans-serif;font-size:24px;color:var(--ink);margin-right:4px}
+.track{position:relative;height:34px;background:var(--bg2);border-radius:8px;overflow:hidden}
+.fill{height:100%;background:#8A99AD;border-radius:8px;transition:width .5s ease}
+.half{position:absolute;left:50%;top:0;bottom:0;border-left:2px dashed rgba(18,35,61,.35)}
+.prev{position:absolute;top:0;bottom:0;border-left:3px solid var(--navy)}
+.bar .v{font-family:Oswald,sans-serif;font-size:28px;font-weight:600;text-align:right}
+.bar .d{font-size:14px;color:var(--mute)} .bar .d.up{color:#1F7A4D;font-weight:700} .bar .d.dn{color:#B3261E;font-weight:700}
+.bar.best .fill{background:var(--orange)} .bar.best .v,.bar.best .lab b{color:var(--od)}
+.bar.worst .fill{background:#C7CFDA}
+.scale{display:grid;grid-template-columns:150px 1fr 110px 120px;gap:14px;font-size:12px;color:var(--mute);margin-top:2px}
+.scale div:nth-child(2){display:flex;justify-content:space-between}
+h4{font-size:16px;margin:24px 0 6px;color:var(--sub)}
+table.mx{border-collapse:collapse;font-size:14px}
+.mx th,.mx td{border:1px solid var(--line);padding:6px 10px;text-align:center}
+.mx th{background:var(--bg2);font-weight:500;color:var(--sub)}
+.mx td{font-family:Oswald,"Noto Sans JP",sans-serif;font-size:16px}
+.mx td.sel{outline:3px solid var(--od);outline-offset:-3px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.note{font-size:13px;color:var(--mute);margin-top:14px;line-height:1.8}
+@media (max-width:900px){.lineup,.two{grid-template-columns:1fr}.court{grid-template-columns:repeat(3,1fr)}.bar,.scale{grid-template-columns:90px 1fr 70px 70px}.opts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="eyebrow">VOLLEYBALL ANALYST SEMINAR 2027 ｜ ROTATION SIMULATOR v2</div>
+  <h1>勝率シミュレーター v2（選手スタッツ版）</h1>
+  <div class="lead">コートに立つ選手のサーブ・レセプション・アタック・ブロックから1ラリーずつ得点確率を出し、自チームのスタートローテ別の勝率を計算します</div>
+</div></header>
+
+<main class="wrap">
+<section class="step">
+  <h2><span class="n">1</span>データを入れる</h2>
+  <p class="hint">dvwファイルを読み込むと、チーム・選手・スタッツ・よく使われたスタメンが自動で入ります。dvwはこのブラウザの中だけで読み、どこにも送信しません。dvwなしでも、選手スタッツを手入力すれば使えます。</p>
+  <label class="drop" id="drop"><input type="file" id="file" accept=".dvw" multiple><b>dvwファイルをここにドロップ</b>、またはクリックして選択（複数可）</label>
+  <div class="loaded" id="loaded">まだ読み込んでいません。いまは手入力用の平均的な選手が入っています。</div>
+</section>
+
+<section class="step">
+  <h2><span class="n">2</span>チームとスタメン</h2>
+  <p class="hint">スタメンは「セッターがP1にいるとき（S1）の並び」で入れます。ほかのローテはこの並びを回して作ります。リベロはレセプションに加わります。</p>
+  <div class="team us" id="us"></div>
+  <div class="team op" id="op"></div>
+</section>
+
+<section class="step">
+  <h2><span class="n">3</span>シミュレーションの条件</h2>
+  <div class="opts">
+    <div class="k">相手のスタートローテ（想定）</div><div class="seg rot" id="opp-start"></div>
+    <div class="k">最初にサーブするのは</div>
+    <div class="seg" id="first-serve"><button data-v="us">自チーム</button><button data-v="op">相手</button><button data-v="avg" class="on">わからない（半々）</button></div>
+    <div class="k">セット</div>
+    <div class="seg" id="target"><button data-v="25" class="on">25点（第1〜4セット）</button><button data-v="15">15点（第5セット）</button></div>
+  </div>
+  <button class="go" id="go">シミュレーション開始</button>
+  <div class="err" id="err"></div>
+</section>
+
+<section class="step" id="result">
+  <h2><span class="n">4</span>結果：自チームのスタートローテ別の勝率</h2>
+  <div class="headline" id="headline"></div>
+  <div class="bars" id="bars"></div>
+  <div class="scale"><div></div><div><span>0%</span><span>50%</span><span>100%</span></div><div></div><div></div></div>
+  <h4>この対戦で予想されるローテ別のSO率・BP率</h4>
+  <div class="two" id="rotpred"></div>
+  <details style="margin-top:18px"><summary>相手のスタートが読めないとき：全組み合わせの表</summary>
+    <p class="hint" style="margin-top:6px">縦＝自チームのスタート、横＝相手のスタート。枠のついた列が今回の想定です。</p><div id="matrix"></div></details>
+  <p class="note" id="method"></p>
+</section>
+</main>
+
+<script>
+// ===== ENGINE START（dvw読み込み・選手スタッツ・ラリーの流れモデル・セット計算） =====
+const ROTS = [1, 2, 3, 4, 5, 6];
+const nextRot = r => (r === 1 ? 6 : r - 1);
+const FRONT = { 1: false, 2: true, 3: true, 4: true, 5: false, 6: false };
+const SV_CAT = { "#": "ace", "=": "err", "-": "good", "!": "good", "+": "poor", "/": "poor" };
+const ROLE = { "1": "L", "2": "OH", "3": "OPP", "4": "MB", "5": "S" };
+// リーグ基準値（2014/15 V・プレミアリーグ女子72試合から算出。dvwを読み込むと置き換わる）
+const LEAGUE_DEFAULT = {"Lsv": {"ace": 0.02539, "err": 0.07575, "good": 0.73838, "poor": 0.16048}, "Lrc": {"err": 0.02747, "good": 0.79889, "poor": 0.17364}, "Lat": {"k": 0.35247, "e": 0.05245, "b": 0.04269, "c": 0.55239}, "Ltr": {"k": 0.31421, "e": 0.0549, "b": 0.04503, "c": 0.58586}, "Lfball": {"k": 0.40163, "e": 0.0493, "b": 0.03969, "c": 0.50937}, "qmul": {"good": {"k": 1.06071, "e": 0.94943, "b": 0.97804, "c": 0.95874}, "poor": {"k": 0.6446, "e": 1.29606, "b": 1.12857, "c": 1.24155}}, "Lnone": {"good": 0.1831, "poor": 0.28671}, "Fmul": {"good": 1.07406, "poor": 0.84819}, "T_off": 0.07181, "Lblk": 0.83396, "mu": 0.6403, "base": 0.64936, "lam": 0.6};
+const ROLE_W = { OPP: { fF: 0.3586, fB: 0.0774, rw: 0.0091 }, S: { fF: 0.0314, fB: 0, rw: 0.0011 }, OH: { fF: 0.3537, fB: 0.0047, rw: 0.2831 }, MB: { fF: 0.2786, fB: 0, rw: 0.0098 }, L: { fF: 0, fB: 0, rw: 0.2076 } };
+
+function decodeDvw(buf) {
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(buf); }
+  catch (e) { return new TextDecoder("shift_jis").decode(buf); }
+}
+
+function parseMatch(text, fileName) {
+  let sec = null; const teams = [], scout = [], players = { "*": {}, "a": {} };
+  for (const line of text.split(/\r?\n/)) {
+    const s = line.trim();
+    if (s.startsWith("[3")) { sec = s.toUpperCase(); continue; }
+    if (!s) continue;
+    if (sec === "[3TEAMS]") teams.push(s.split(";"));
+    else if (sec === "[3PLAYERS-H]" || sec === "[3PLAYERS-V]") {
+      const f = s.split(";"), side = sec.endsWith("H]") ? "*" : "a", num = parseInt(f[1], 10);
+      if (!num || num === 99) continue;
+      players[side][num] = { num, name: `${(f[9] || "").trim()} ${(f[10] || "").trim()}`.trim(), role: ROLE[(f[13] || "").trim()] || "?",
+        played: f.slice(3, 8).filter(x => x && x.trim()).length };
+    } else if (sec === "[3SCOUT]") scout.push(s);
+  }
+  if (teams.length < 2) throw new Error(`${fileName}: チーム情報が見つかりません`);
+  const names = { "*": (teams[0][1] || teams[0][0]).trim(), "a": (teams[1][1] || teams[1][0]).trim() };
+  const rallies = []; let cur = null, setNo = 1, m;
+  for (const s of scout) {
+    const f = s.split(";"), code = f[0];
+    if ((m = code.match(/^\*\*(\d)set/i))) { setNo = +m[1] + 1; cur = null; continue; }
+    if ((m = code.match(/^([*a])(\d{2})([SREABDF])(.)(.)/))) {
+      const [, side, num, skill, , ev] = m;
+      if (skill === "S" && !cur) {
+        const rh = parseInt(f[9], 10), ra = parseInt(f[10], 10);
+        if (!(rh >= 1 && rh <= 6 && ra >= 1 && ra <= 6)) continue;
+        const col = (a, b) => f.slice(a, b).map(x => (/^\d+$/.test((x || "").trim()) ? +x : null));
+        cur = { set: setNo, server: side, rot: { "*": rh, "a": ra }, court: { "*": col(14, 20), "a": col(20, 26) }, plays: [] };
+      }
+      if (cur) cur.plays.push([side, +num, skill, ev]);
+      continue;
+    }
+    if ((m = code.match(/^([*a])p(\d+):(\d+)/))) {
+      if (cur) { cur.winner = m[1]; rallies.push(cur); }
+      cur = null;
+    }
+  }
+  return { file: fileName, names, players, rallies };
+}
+
+function phases(r) {
+  const pl = r.plays, srv = pl[0], S = srv[0], R = S === "*" ? "a" : "*";
+  const out = { S, R, server: srv[1], sv: SV_CAT[srv[3]] || "good", svBang: srv[3] === "!", recv: null, fb: null, tr: [] };
+  let i = 1;
+  if (i < pl.length && pl[i][0] === R && pl[i][2] === "R") { out.recv = pl[i][1]; i++; }
+  let j = i;
+  while (j < pl.length) {
+    const [side, num, sk, ev] = pl[j];
+    if (side !== R) break;
+    j++;
+    if (sk === "A") { out.fb = [num, ev]; break; }
+  }
+  for (const [side, num, sk, ev] of pl.slice(j)) if (sk === "A") out.tr.push([side, num, ev]);
+  return out;
+}
+const rowOf = (court, num) => { const k = court.indexOf(num); return k >= 0 && FRONT[k + 1] ? "F" : "B"; };
+const attCat = ev => ({ "#": "k", "=": "e", "/": "b" }[ev] || "c");
+const libsOf = (m, side) => Object.values(m.players[side]).filter(p => p.role === "L").map(p => p.num);
+
+// チーム×背番号ごとのカウント（Python版 model2.player_stats と同じ）
+function buildStats(matches) {
+  const P = new Map(), L = {};
+  const g = (team, num) => { const k = team + "|" + num; if (!P.has(k)) P.set(k, { team, num }); return P.get(k); };
+  const add = (o, k, v = 1) => (o[k] = (o[k] || 0) + v);
+  for (const m of matches) {
+    for (const side of ["*", "a"]) for (const p of Object.values(m.players[side])) {
+      const d = g(m.names[side], p.num); d.name = p.name; d.role = p.role; add(d, "sets", p.played);
+    }
+    for (const r of m.rallies) {
+      const ph = phases(r), tS = m.names[ph.S], tR = m.names[ph.R];
+      const sv = g(tS, ph.server); add(sv, "sv_n"); add(sv, "sv_" + ph.sv); if (ph.svBang) add(sv, "sv_bang");
+      const libs = libsOf(m, ph.R);
+      if (ph.sv !== "err") {
+        for (const n of r.court[ph.R].filter(x => x).concat(libs)) add(g(tR, n), "rc_opp", libs.includes(n) ? 1 / (libs.length || 1) : 1);
+        if (ph.recv !== null) { const d = g(tR, ph.recv); add(d, "rc_n"); add(d, "rc_" + { ace: "err", good: "good", poor: "poor" }[ph.sv]); }
+      }
+      if (ph.sv === "good" || ph.sv === "poor") {
+        for (const n of r.court[ph.R]) if (n) add(g(tR, n), "fbo_" + rowOf(r.court[ph.R], n));
+        if (ph.fb) {
+          const [n, ev] = ph.fb, c = attCat(ev), d = g(tR, n);
+          add(d, "fb_" + rowOf(r.court[ph.R], n)); add(d, "at_n"); add(d, "at_" + c);
+          add(L, `fb_${ph.sv}_${c}`); add(L, `fb_${ph.sv}_n`);
+        }
+      }
+      for (const [side, n, ev] of ph.tr) { const d = g(m.names[side], n); add(d, "at_n"); add(d, "at_" + attCat(ev)); }
+      for (const [side, num, sk, ev] of r.plays) if (sk === "B" && ev === "#") add(g(m.names[side], num), "bk_pt");
+    }
+  }
+  return { P, L };
+}
+
+function shrink(cnt, n, prior, k) { const o = {}; for (const c in prior) o[c] = ((cnt[c] || 0) + k * prior[c]) / (n + k); return o; }
+const pick = (d, pre, keys) => { const o = {}; keys.forEach(c => (o[c] = d[pre + c] || 0)); return o; };
+
+class Model {
+  constructor(P, league) { this.P = P; Object.assign(this, JSON.parse(JSON.stringify(league))); }
+  static fromStats({ P, L }) {
+    const vals = [...P.values()], sum = (arr, k) => arr.reduce((s, d) => s + (d[k] || 0), 0), lg = {};
+    let a = vals.filter(d => d.sv_n), N = sum(a, "sv_n"); lg.Lsv = {}; ["ace", "err", "good", "poor"].forEach(c => (lg.Lsv[c] = sum(a, "sv_" + c) / N));
+    a = vals.filter(d => d.rc_n); N = sum(a, "rc_n"); lg.Lrc = {}; ["err", "good", "poor"].forEach(c => (lg.Lrc[c] = sum(a, "rc_" + c) / N));
+    a = vals.filter(d => d.at_n); N = sum(a, "at_n"); lg.Lat = {}; [..."kebc"].forEach(c => (lg.Lat[c] = sum(a, "at_" + c) / N));
+    const Lfb = {}; ["good", "poor"].forEach(q => { Lfb[q] = {}; [..."kebc"].forEach(c => (Lfb[q][c] = (L[`fb_${q}_${c}`] || 0) / L[`fb_${q}_n`])); });
+    lg.Lfball = {}; [..."kebc"].forEach(c => (lg.Lfball[c] = ((L["fb_good_" + c] || 0) + (L["fb_poor_" + c] || 0)) / (L.fb_good_n + L.fb_poor_n)));
+    lg.qmul = {}; ["good", "poor"].forEach(q => { lg.qmul[q] = {}; [..."kebc"].forEach(c => (lg.qmul[q][c] = Lfb[q][c] / lg.Lfball[c])); });
+    // 切り返しの基準は既定値の比率を流用（Lat に対する比）
+    lg.Ltr = {}; [..."kebc"].forEach(c => (lg.Ltr[c] = lg.Lat[c] * LEAGUE_DEFAULT.Ltr[c] / LEAGUE_DEFAULT.Lat[c]));
+    let z = Object.values(lg.Ltr).reduce((s, v) => s + v, 0); for (const c in lg.Ltr) lg.Ltr[c] /= z;
+    Object.assign(lg, { Lnone: { good: 0.183, poor: 0.287 }, Fmul: { good: 1, poor: 1 }, T_off: 0, Lblk: LEAGUE_DEFAULT.Lblk, mu: 0.65, base: 0.65, lam: LEAGUE_DEFAULT.lam });
+    return new Model(P, lg);
+  }
+  p(team, num) { return this.P.get(team + "|" + num) || {}; }
+  serve(team, num) { const d = this.p(team, num); return shrink(pick(d, "sv_", Object.keys(this.Lsv)), d.sv_n || 0, this.Lsv, 40); }
+  recv(team, players) {
+    const acc = { err: 0, good: 0, poor: 0 }; let W = 0;
+    for (const n of players) {
+      const d = this.p(team, n), w = (d.rc_n || 0) / Math.max(d.rc_opp || 0, 1);
+      if (w <= 0) continue;
+      const r = shrink(pick(d, "rc_", ["err", "good", "poor"]), d.rc_n || 0, this.Lrc, 30);
+      for (const c in acc) acc[c] += w * r[c];
+      W += w;
+    }
+    if (!W) return { ...this.Lrc };
+    for (const c in acc) acc[c] /= W;
+    return acc;
+  }
+  attack(team, court, trans = false) {
+    const acc = { k: 0, e: 0, b: 0, c: 0 }; let F = 0;
+    court.forEach((n, i) => {
+      if (!n) return;
+      const d = this.p(team, n), row = FRONT[i + 1] ? "F" : "B", f = (d["fb_" + row] || 0) / Math.max(d["fbo_" + row] || 0, 1);
+      if (f <= 0) return;
+      let o = shrink(pick(d, "at_", [..."kebc"]), d.at_n || 0, this.Lat, 30);
+      const ph = trans ? this.Ltr : this.Lfball;
+      for (const c in o) o[c] *= ph[c] / this.Lat[c];
+      const z = Object.values(o).reduce((s, v) => s + v, 0);
+      for (const c in acc) acc[c] += (f * o[c]) / z;
+      F += f;
+    });
+    const out = {}; for (const c in acc) out[c] = acc[c] / Math.max(F, 1e-9);
+    out.F = Math.min(F, 1);
+    return out;
+  }
+  block(team, court) {
+    let s = 0; court.forEach((n, i) => { if (n && FRONT[i + 1]) { const d = this.p(team, n); s += (d.bk_pt || 0) / Math.max(d.sets || 0, 1); } });
+    return s;
+  }
+  adjBlock(o, blk) {
+    const f = this.Lblk ? blk / this.Lblk : 1, F = o.F, x = { k: o.k, e: o.e, b: o.b * f, c: Math.max(o.c - (o.b * f - o.b), 0.01) };
+    const z = x.k + x.e + x.b + x.c; for (const c in x) x[c] /= z;
+    if (F !== undefined) x.F = F;
+    return x;
+  }
+  soRaw(tR, courtR, libsR, tS, courtS, server) {
+    const sv = this.serve(tS, server), rc = this.recv(tR, courtR.filter(x => x).concat(libsR)), e = sv.err;
+    let m = { ace: sv.ace * rc.err / this.Lrc.err, good: sv.good * rc.good / this.Lrc.good, poor: sv.poor * rc.poor / this.Lrc.poor };
+    const z = m.ace + m.good + m.poor; for (const k in m) m[k] = (1 - e) * m[k] / z;
+    const blkS = this.block(tS, courtS), blkR = this.block(tR, courtR);
+    const fb = this.adjBlock(this.attack(tR, courtR), blkS);
+    const aS = this.adjBlock(this.attack(tS, courtS, true), blkR), aR = this.adjBlock(this.attack(tR, courtR, true), blkS);
+    const winS = (aS.k + aS.c * (1 - aR.k - aR.c)) / (1 - aS.c * aR.c);
+    const T = Math.min(Math.max(1 - winS + this.T_off, 0.05), 0.95);
+    let p = e;
+    for (const q of ["good", "poor"]) {
+      const o = {}; let zz = 0; for (const c of "kebc") { o[c] = fb[c] * this.qmul[q][c]; zz += o[c]; }
+      const F = Math.min(fb.F * this.Fmul[q], 1);
+      p += m[q] * (F * (o.k / zz + (o.c / zz) * T) + (1 - F) * this.Lnone[q]);
+    }
+    return { p, T, F: fb.F };
+  }
+  so(...a) { const p = this.soRaw(...a).p; return Math.min(Math.max(this.base + this.lam * (p - this.mu), 0.02), 0.98); }
+}
+
+// 読み込んだdvwで補正値（アタックなし率・その時の勝率・切り返し基準・ブロック基準・全体の水準）を求める
+function calibrate(M, matches) {
+  const vals = []; for (const m of matches) for (const r of m.rallies) for (const s of ["*", "a"]) vals.push(M.block(m.names[s], r.court[s]));
+  M.Lblk = vals.reduce((a, b) => a + b, 0) / vals.length;
+  M.T_off = 0; M.Fmul = { good: 1, poor: 1 };
+  const n = {}, none = {}, nonew = {}, Fp = {}; let cont = 0, contw = 0, Tp = 0;
+  for (const m of matches) for (const r of m.rallies) {
+    const ph = phases(r), q = ph.sv; if (q !== "good" && q !== "poor") continue;
+    const win = r.winner === ph.R, tR = m.names[ph.R];
+    n[q] = (n[q] || 0) + 1;
+    Fp[q] = (Fp[q] || 0) + M.attack(tR, r.court[ph.R]).F;
+    if (!ph.fb) { none[q] = (none[q] || 0) + 1; nonew[q] = (nonew[q] || 0) + win; }
+    else if (attCat(ph.fb[1]) === "c") {
+      cont++; contw += win;
+      Tp += M.soRaw(tR, r.court[ph.R], libsOf(m, ph.R), m.names[ph.S], r.court[ph.S], ph.server).T;
+    }
+  }
+  for (const q of ["good", "poor"]) {
+    if (!n[q]) continue;
+    M.Lnone[q] = none[q] ? nonew[q] / none[q] : M.Lnone[q];
+    M.Fmul[q] = (1 - (none[q] || 0) / n[q]) / (Fp[q] / n[q]);
+  }
+  if (cont) M.T_off = contw / cont - Tp / cont;
+  let sp = 0, sw = 0, k = 0;
+  for (const m of matches) for (const r of m.rallies) {
+    const ph = phases(r);
+    sp += M.soRaw(m.names[ph.R], r.court[ph.R], libsOf(m, ph.R), m.names[ph.S], r.court[ph.S], ph.server).p; sw += r.winner === ph.R; k++;
+  }
+  if (k) { M.mu = sp / k; M.base = sw / k; }
+  return M;
+}
+
+// よく使われたスタメン（セッターがP1のときの並び）とリベロ
+function defaultLineup(matches, M, team) {
+  const cnt = new Map();
+  for (const m of matches) for (const side of ["*", "a"]) {
+    if (m.names[side] !== team) continue;
+    for (const r of m.rallies) if (r.rot[side] === 1 && r.court[side].every(x => x)) {
+      const k = r.court[side].join(","); cnt.set(k, (cnt.get(k) || 0) + 1);
+    }
+  }
+  let best = null, bn = 0; for (const [k, v] of cnt) if (v > bn) { best = k; bn = v; }
+  const base = best ? best.split(",").map(Number) : [null, null, null, null, null, null];
+  let lib = null, ln = -1;
+  for (const d of M.P.values()) if (d.team === team && d.role === "L" && (d.rc_n || 0) > ln) { lib = d.num; ln = d.rc_n || 0; }
+  return { base, lib };
+}
+
+// S1の並び（P1..P6）→ ローテ r のコート
+function courtAt(base, r) { const n = (((1 - r) % 6) + 6) % 6; return base.map((_, i) => base[(i + n) % 6]); }
+
+// 両チームのローテ組み合わせごとのサイドアウト確率
+function rallyTable(M, us, op) {
+  const soUs = {}, soOp = {};
+  for (const r of ROTS) { soUs[r] = {}; soOp[r] = {}; }
+  for (const r of ROTS) for (const q of ROTS) {
+    const cu = courtAt(us.base, r), co = courtAt(op.base, q);
+    soUs[r][q] = M.so(us.team, cu, us.libs, op.team, co, co[0]);   // 自チームが受け、相手P1がサーブ
+    soOp[r][q] = M.so(op.team, co, op.libs, us.team, cu, cu[0]);   // 相手が受け、自チームP1がサーブ
+  }
+  return { soUs, soOp };
+}
+
+function setWinProb(tab, usStart, opStart, usServesFirst, target) {
+  const CAP = target + 30, W = CAP + 1, memo = new Float64Array(W * W * 72).fill(-1);
+  function p(a, b, r, q, serving) {
+    if (a >= target && a - b >= 2) return 1;
+    if (b >= target && b - a >= 2) return 0;
+    if (a >= CAP || b >= CAP) return 0.5;
+    const k = (((a * W + b) * 6 + (r - 1)) * 6 + (q - 1)) * 2 + (serving ? 1 : 0);
+    if (memo[k] >= 0) return memo[k];
+    let v;
+    if (serving) { const x = 1 - tab.soOp[r][q]; v = x * p(a + 1, b, r, q, true) + (1 - x) * p(a, b + 1, r, nextRot(q), false); }
+    else { const x = tab.soUs[r][q]; v = x * p(a + 1, b, nextRot(r), q, true) + (1 - x) * p(a, b + 1, r, q, false); }
+    return (memo[k] = v);
+  }
+  return p(0, 0, usStart, opStart, usServesFirst);
+}
+function winByStart(tab, opStart, firstServe, target) {
+  const res = {};
+  for (const r of ROTS) {
+    const s = setWinProb(tab, r, opStart, true, target), v = setWinProb(tab, r, opStart, false, target);
+    res[r] = firstServe === "us" ? s : firstServe === "op" ? v : (s + v) / 2;
+  }
+  return res;
+}
+// ===== ENGINE END =====
+
+
+// ===== 画面 =====
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pct = (x, d = 1) => (x == null || isNaN(x) ? "—" : (x * 100).toFixed(d) + "%");
+let MATCHES = [], M = new Model(new Map(), LEAGUE_DEFAULT);
+const state = { opStart: 1, firstServe: "avg", target: 25, prev: null };
+const T = { us: { team: "自チーム（手入力）", label: "自チーム", base: [], libs: [] }, op: { team: "相手チーム（手入力）", label: "相手チーム", base: [], libs: [] } };
+const ROLE_JA = { S: "S", OH: "OH", OPP: "OPP", MB: "MB", L: "L", "?": "?" };
+
+// 平均的な選手を作る（手入力用）
+function makePlayer(team, num, name, role) {
+  const Lg = M, n = role === "L" ? 0 : 100, d = { team, num, name, role, sets: 10, manual: true };
+  if (role !== "L") { d.sv_n = n; ["ace", "err", "good", "poor"].forEach(c => (d["sv_" + c] = Lg.Lsv[c] * n)); d.sv_bang = 0.25 * n; }
+  const w = ROLE_W[role] || ROLE_W.OH, rn = w.rw > 0.05 ? 200 : 0;
+  d.rc_n = rn; ["err", "good", "poor"].forEach(c => (d["rc_" + c] = Lg.Lrc[c] * rn)); d.rc_opp = rn ? rn / w.rw : 0;
+  const an = role === "L" ? 0 : role === "S" ? 20 : 300; d.at_n = an; [..."kebc"].forEach(c => (d["at_" + c] = Lg.Lat[c] * an));
+  d.fbo_F = 1000; d.fb_F = w.fF * 1000; d.fbo_B = 1000; d.fb_B = w.fB * 1000;
+  d.bk_pt = { MB: 0.8, OPP: 0.5, OH: 0.4, S: 0.2, L: 0 }[role] * 10;
+  M.P.set(team + "|" + num, d);
+  return d;
+}
+function manualTeam(key) {
+  const t = T[key]; t.team = key === "us" ? "自チーム（手入力）" : "相手チーム（手入力）";
+  [...M.P.keys()].filter(k => k.startsWith(t.team + "|")).forEach(k => M.P.delete(k));
+  const roles = [["S", 1], ["OH", 2], ["MB", 3], ["OPP", 4], ["OH", 5], ["MB", 6], ["L", 7]];
+  roles.forEach(([r, n]) => makePlayer(t.team, n, `選手${n}`, r));
+  t.base = [1, 2, 3, 4, 5, 6]; t.libs = [7];
+}
+const roster = team => [...M.P.values()].filter(d => d.team === team && (d.manual || d.sv_n || d.rc_n || d.at_n || d.sets))
+  .sort((a, b) => "S OH OPP MB L ?".indexOf(a.role) - "S OH OPP MB L ?".indexOf(b.role) || a.num - b.num);
+
+// 表示用の指標
+function stat(d0) {
+  const d = new Proxy(d0, { get: (o, k) => (typeof o[k] === "number" ? o[k] : 0) });
+  const sn = d.sv_n, rn = d.rc_n, an = d.at_n, eff = d.sv_poor + d.sv_bang;
+  return {
+    sv_n: sn, sv_ace: sn ? d.sv_ace / sn : null, sv_err: sn ? d.sv_err / sn : null, sv_eff: sn ? eff / sn : null,
+    sv_idx: sn ? (d.sv_ace * 100 + eff * 25 - d.sv_err * 25) / sn / 100 : null,
+    rc_n: rn, rc_ret: rn ? d.rc_good / rn : null, rc_err: rn ? d.rc_err / rn : null,
+    at_n: an, at_k: an ? d.at_k / an : null, at_e: an ? d.at_e / an : null, at_b: an ? d.at_b / an : null,
+    at_idx: an ? (d.at_k - d.at_e - d.at_b) / an : null, bk: d.bk_pt / Math.max(d.sets, 1),
+  };
+}
+// 編集を内部の数に反映
+function applyEdit(d, field, v) {
+  ["sv_n","sv_ace","sv_err","sv_good","sv_poor","sv_bang","rc_n","rc_good","rc_err","rc_poor","at_n","at_k","at_e","at_b","at_c","bk_pt","sets"].forEach(k => { if (typeof d[k] !== "number") d[k] = 0; });
+  const s = stat(d), P = x => Math.max(0, Math.min(100, x)) / 100;
+  if (field === "sv_n") { const r = { ace: s.sv_ace, err: s.sv_err, poor: (d.sv_poor || 0) / Math.max(s.sv_n, 1), bang: (d.sv_bang || 0) / Math.max(s.sv_n, 1) };
+    if (!s.sv_n) Object.assign(r, { ace: M.Lsv.ace, err: M.Lsv.err, poor: M.Lsv.poor, bang: 0.25 });
+    d.sv_n = Math.max(0, v); d.sv_ace = r.ace * d.sv_n; d.sv_err = r.err * d.sv_n; d.sv_poor = r.poor * d.sv_n; d.sv_bang = r.bang * d.sv_n; }
+  else if (["sv_ace", "sv_err", "sv_eff"].includes(field)) {
+    const n = d.sv_n || 0; if (!n) return;
+    if (field === "sv_ace") d.sv_ace = P(v) * n;
+    if (field === "sv_err") d.sv_err = P(v) * n;
+    if (field === "sv_eff") { const tot = (d.sv_poor || 0) + (d.sv_bang || 0), share = tot ? d.sv_poor / tot : M.Lsv.poor / (M.Lsv.poor + 0.25); const e = P(v) * n; d.sv_poor = e * share; d.sv_bang = e - d.sv_poor; }
+  } else if (field === "rc_n") { const r = { good: s.rc_ret ?? M.Lrc.good, err: s.rc_err ?? M.Lrc.err }; const old = d.rc_n || 0, w = old && d.rc_opp ? old / d.rc_opp : (ROLE_W[d.role] || ROLE_W.OH).rw;
+    d.rc_n = Math.max(0, v); d.rc_good = r.good * d.rc_n; d.rc_err = r.err * d.rc_n; d.rc_poor = d.rc_n - d.rc_good - d.rc_err; d.rc_opp = w > 0 ? d.rc_n / w : 0; }
+  else if (field === "rc_ret" || field === "rc_err") { const n = d.rc_n || 0; if (!n) return;
+    if (field === "rc_ret") d.rc_good = P(v) * n; else d.rc_err = P(v) * n; d.rc_poor = Math.max(n - d.rc_good - d.rc_err, 0); }
+  else if (field === "at_n") { const r = { k: s.at_k ?? M.Lat.k, e: s.at_e ?? M.Lat.e, b: s.at_b ?? M.Lat.b };
+    d.at_n = Math.max(0, v); d.at_k = r.k * d.at_n; d.at_e = r.e * d.at_n; d.at_b = r.b * d.at_n; d.at_c = d.at_n - d.at_k - d.at_e - d.at_b;
+    if (!d.fbo_F) { const w = ROLE_W[d.role] || ROLE_W.OH; d.fbo_F = d.fbo_B = 1000; d.fb_F = w.fF * 1000; d.fb_B = w.fB * 1000; } }
+  else if (["at_k", "at_e", "at_b"].includes(field)) { const n = d.at_n || 0; if (!n) return; d[field] = P(v) * n; d.at_c = Math.max(n - d.at_k - d.at_e - d.at_b, 0); }
+  else if (field === "bk") { d.sets = Math.max(d.sets || 0, 1); d.bk_pt = Math.max(0, v) * d.sets; }
+  // 合計が100%を超えたら「その他」を0にそろえる
+  if (d.sv_n) d.sv_good = Math.max(d.sv_n - d.sv_ace - d.sv_err - d.sv_poor, 0);
+}
+
+function renderTeam(key) {
+  const t = T[key], el = $("#" + key), list = roster(t.team), teams = teamList();
+  const opt = (sel, allowEmpty) => (allowEmpty ? `<option value="">（なし）</option>` : "") +
+    list.filter(p => p.role !== "L" || allowEmpty).map(p => `<option value="${p.num}" ${+sel === p.num ? "selected" : ""}>${p.num} ${esc(p.name)}（${ROLE_JA[p.role]}）</option>`).join("");
+  const libOpt = `<option value="">（なし）</option>` + list.map(p => `<option value="${p.num}" ${t.libs[0] === p.num ? "selected" : ""}>${p.num} ${esc(p.name)}（${ROLE_JA[p.role]}）</option>`).join("");
+  const slot = pos => `<div class="slot"><div class="p">P${pos}</div><select data-pos="${pos}">${opt(t.base[pos - 1], false)}</select></div>`;
+  const onc = new Set([...t.base, ...t.libs]);
+  const f = (v, d = 1) => (v == null ? "" : (v * 100).toFixed(d));
+  const inp = (p, k, v) => `<input data-num="${p.num}" data-f="${k}" value="${v}" inputmode="decimal">`;
+  const rows = list.map(p => { const s = stat(p);
+    return `<tr class="${onc.has(p.num) ? "onc" : ""}"><td>${p.manual ? `<input data-num="${p.num}" data-f="num" value="${p.num}" style="width:40px">` : p.num}</td>
+      <td class="nm">${p.manual ? `<input class="nmi" data-num="${p.num}" data-f="name" value="${esc(p.name)}">` : esc(p.name)}</td>
+      <td>${p.manual ? `<select data-num="${p.num}" data-f="role">${["S", "OH", "OPP", "MB", "L"].map(r => `<option ${r === p.role ? "selected" : ""}>${r}</option>`).join("")}</select>` : ROLE_JA[p.role]}</td>
+      <td>${inp(p, "sv_n", Math.round(s.sv_n))}</td><td>${inp(p, "sv_ace", f(s.sv_ace))}</td><td>${inp(p, "sv_err", f(s.sv_err))}</td><td>${inp(p, "sv_eff", f(s.sv_eff))}</td><td class="calc">${pct(s.sv_idx)}</td>
+      <td>${inp(p, "rc_n", Math.round(s.rc_n))}</td><td>${inp(p, "rc_ret", f(s.rc_ret))}</td><td>${inp(p, "rc_err", f(s.rc_err))}</td>
+      <td>${inp(p, "at_n", Math.round(s.at_n))}</td><td>${inp(p, "at_k", f(s.at_k))}</td><td>${inp(p, "at_e", f(s.at_e))}</td><td>${inp(p, "at_b", f(s.at_b))}</td><td class="calc">${pct(s.at_idx)}</td>
+      <td>${inp(p, "bk", s.bk.toFixed(2))}</td>
+      <td>${p.manual ? `<button class="del" data-num="${p.num}" title="削除">×</button>` : ""}</td></tr>`; }).join("");
+  el.innerHTML = `<h3>${key === "us" ? "自チーム" : "対戦相手"}</h3>
+    <div class="top"><span><label>チーム</label><select class="tsel"><option value="">手入力</option>${teams.map(([n, k]) => `<option value="${esc(n)}" ${n === t.team ? "selected" : ""}>${esc(n)}（${k}試合）</option>`).join("")}</select></span>
+    <span><label>表示名</label><input type="text" class="lbl" value="${esc(t.label)}"></span></div>
+    <div class="lineup"><div class="court"><div class="net">NET</div>${[4, 3, 2].map(slot).join("")}${[5, 6, 1].map(slot).join("")}
+      <div class="slot lib"><span class="p">リベロ</span><select class="libsel">${libOpt}</select></div></div>
+      <div class="lnote"><b>前衛</b> P4・P3・P2、<b>後衛</b> P5・P6・P1。P1にセッターを入れてください。<br>選手を入れ替えると、その選手のスタッツで計算し直します。<br>下の表の数字は直接書き換えられます（オレンジの行がコートにいる選手）。</div></div>
+    <details class="roster" ${(t.open ?? list.length <= 10) ? "open" : ""}><summary>選手スタッツ（${list.length}人）</summary>
+      <div class="tw"><table class="rs"><tr><th rowspan="2">#</th><th rowspan="2">名前</th><th rowspan="2">Pos</th><th class="g" colspan="5">サーブ</th><th class="g" colspan="3">レセプション</th><th class="g" colspan="5">アタック</th><th class="g">ブロック</th><th rowspan="2"></th></tr>
+      <tr><th>打数</th><th>エース%</th><th>ミス%</th><th>効果%</th><th>効果率</th><th>受数</th><th>返球率%</th><th>ミス%</th><th>打数</th><th>決定%</th><th>ミス%</th><th>被ブロック%</th><th>効果率</th><th>決定本数/セット</th></tr>${rows}</table></div>
+      <button class="btn add">＋ 選手を追加</button></details>`;
+  el.querySelectorAll(".court select[data-pos]").forEach(s => s.addEventListener("change", () => { t.base[+s.dataset.pos - 1] = +s.value; changed(); renderTeam(key); }));
+  el.querySelector(".libsel").addEventListener("change", e => { t.libs = e.target.value ? [+e.target.value] : []; changed(); renderTeam(key); });
+  el.querySelector(".lbl").addEventListener("input", e => (t.label = e.target.value));
+  el.querySelector(".tsel").addEventListener("change", e => selectTeam(key, e.target.value));
+  el.querySelectorAll(".rs input, .rs select").forEach(inpEl => inpEl.addEventListener("change", () => {
+    const d = M.p(t.team, +inpEl.dataset.num), f = inpEl.dataset.f;
+    if (f === "name") d.name = inpEl.value;
+    else if (f === "role") { d.role = inpEl.value; const w = ROLE_W[d.role]; d.fb_F = w.fF * 1000; d.fb_B = w.fB * 1000; if (d.rc_n) d.rc_opp = w.rw > 0 ? d.rc_n / w.rw : 0; }
+    else if (f === "num") { const nn = parseInt(inpEl.value, 10); if (nn > 0 && !M.P.has(t.team + "|" + nn)) { M.P.delete(t.team + "|" + d.num); t.base = t.base.map(x => (x === d.num ? nn : x)); t.libs = t.libs.map(x => (x === d.num ? nn : x)); d.num = nn; M.P.set(t.team + "|" + nn, d); } }
+    else { const v = parseFloat(inpEl.value); if (!isNaN(v)) applyEdit(d, f, v); }
+    changed(); renderTeam(key);
+  }));
+  el.querySelectorAll(".rs .del").forEach(b => b.addEventListener("click", () => { M.P.delete(t.team + "|" + b.dataset.num); changed(); renderTeam(key); }));
+  el.querySelector("details.roster").addEventListener("toggle", e => (t.open = e.target.open));
+  el.querySelector(".add").addEventListener("click", () => { const used = new Set(roster(t.team).map(p => p.num)); let n = 1; while (used.has(n)) n++; makePlayer(t.team, n, `選手${n}`, "OH"); renderTeam(key); });
+}
+function changed() { $("#result").style.display = "none"; }
+
+function teamList() {
+  const c = new Map(); MATCHES.forEach(m => Object.values(m.names).forEach(n => c.set(n, (c.get(n) || 0) + 1)));
+  return [...c.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+}
+function selectTeam(key, team) {
+  const t = T[key];
+  if (!team) { manualTeam(key); t.label = key === "us" ? "自チーム" : "相手チーム"; }
+  else { const lu = defaultLineup(MATCHES, M, team); t.team = team; t.base = lu.base; t.libs = lu.lib ? [lu.lib] : []; t.label = team; }
+  state.prev = null; changed(); renderTeam(key);
+}
+async function loadFiles(files) {
+  const seen = new Set(MATCHES.map(m => m.sig)); let dup = 0; const errs = [];
+  for (const f of files) {
+    if (!/\.dvw$/i.test(f.name)) { errs.push(`${f.name}（dvwではありません）`); continue; }
+    try { const text = decodeDvw(await f.arrayBuffer()), sig = text.length + ":" + text.slice(0, 3000);
+      if (seen.has(sig)) { dup++; continue; }
+      const m = parseMatch(text, f.name); m.sig = sig;
+      if (!m.rallies.length) { errs.push(`${f.name}（ラリーが読めません）`); continue; }
+      seen.add(sig); MATCHES.push(m);
+    } catch (e) { errs.push(e.message); }
+  }
+  if (MATCHES.length) {
+    $("#loaded").textContent = "計算の準備をしています…"; await new Promise(r => setTimeout(r, 30));
+    const keep = [...M.P.values()].filter(d => d.manual);
+    M = calibrate(Model.fromStats(buildStats(MATCHES)), MATCHES);
+    keep.forEach(d => M.P.set(d.team + "|" + d.num, d));
+  }
+  const ral = MATCHES.reduce((s, m) => s + m.rallies.length, 0);
+  let msg = `${MATCHES.length}試合・${teamList().length}チーム・${ral.toLocaleString()}ラリーを読み込みました。2でチームを選んでください。`;
+  if (dup) msg += `（同じ内容のファイル${dup}件は除外）`;
+  if (errs.length) msg += ` 読めなかったファイル：${errs.slice(0, 3).join("、")}${errs.length > 3 ? " ほか" : ""}`;
+  $("#loaded").textContent = msg; $("#loaded").className = MATCHES.length ? "loaded ok" : "loaded ng";
+  renderTeam("us"); renderTeam("op");
+}
+
+function check(t, who) {
+  const b = t.base;
+  if (b.some(x => !x)) return `${who}のスタメンに空きがあります。`;
+  if (new Set(b).size < 6) return `${who}のスタメンに同じ選手が2回入っています。`;
+  if (t.libs.some(l => b.includes(l))) return `${who}のリベロがスタメンにも入っています。`;
+  return null;
+}
+function run() {
+  $("#err").textContent = "";
+  const e = check(T.us, "自チーム") || check(T.op, "対戦相手"); if (e) { $("#err").textContent = e; return; }
+  const tab = rallyTable(M, T.us, T.op);
+  const res = winByStart(tab, state.opStart, state.firstServe, state.target);
+  const best = ROTS.reduce((a, b) => (res[b] > res[a] ? b : a)), worst = ROTS.reduce((a, b) => (res[b] < res[a] ? b : a));
+  const gap = ((res[best] - res[worst]) * 100).toFixed(1);
+  $("#headline").innerHTML = `${esc(T.op.label)}が <b>S${state.opStart}</b> スタートなら、${esc(T.us.label)}は <b>S${best}</b> スタートがいちばん勝率が高い（<b>${pct(res[best])}</b>）。いちばん低いのは S${worst} スタート（${pct(res[worst])}）。その差は <b>${gap}</b> ポイント。`;
+  const prev = state.prev && state.prev.key === condKey() ? state.prev.res : null;
+  $("#bars").innerHTML = ROTS.map(r => { const d = prev ? (res[r] - prev[r]) * 100 : null;
+    return `<div class="bar ${r === best ? "best" : r === worst ? "worst" : ""}"><div class="lab"><b>S${r}</b>スタート</div>
+    <div class="track"><div class="fill" style="width:0%" data-w="${(res[r] * 100).toFixed(1)}"></div><div class="half"></div>${prev ? `<div class="prev" style="left:${(prev[r] * 100).toFixed(1)}%" title="前回"></div>` : ""}</div>
+    <div class="v">${pct(res[r])}</div><div class="d ${d > 0.05 ? "up" : d < -0.05 ? "dn" : ""}">${prev ? `前回比 ${d >= 0 ? "+" : ""}${d.toFixed(1)}` : ""}</div></div>`; }).join("");
+  state.prev = { key: condKey(), res };
+  // ローテ別予想（相手ローテ6通りの平均）
+  const avg = f => ROTS.reduce((s, q) => s + f(q), 0) / 6;
+  const tbl = (label, so, bp) => `<div><b>${esc(label)}</b><table class="mx" style="margin-top:6px"><tr><th></th>${ROTS.map(r => `<th>S${r}</th>`).join("")}</tr>
+    <tr><th>SO率</th>${ROTS.map(r => `<td>${pct(so(r), 0)}</td>`).join("")}</tr><tr><th>BP率</th>${ROTS.map(r => `<td>${pct(bp(r), 0)}</td>`).join("")}</tr></table></div>`;
+  $("#rotpred").innerHTML = tbl(T.us.label, r => avg(q => tab.soUs[r][q]), r => avg(q => 1 - tab.soOp[r][q])) +
+    tbl(T.op.label, q => avg(r => tab.soOp[r][q]), q => avg(r => 1 - tab.soUs[r][q]));
+  const mx = {}; ROTS.forEach(q => (mx[q] = winByStart(tab, q, state.firstServe, state.target)));
+  const heat = x => { const t = Math.max(-1, Math.min(1, (x - 0.5) / 0.3)); return t >= 0 ? `rgba(18,35,61,${(0.06 + 0.3 * t).toFixed(2)})` : `rgba(240,138,36,${(0.08 + 0.4 * -t).toFixed(2)})`; };
+  $("#matrix").innerHTML = `<table class="mx" style="margin-top:8px"><tr><th>自＼相手</th>${ROTS.map(q => `<th>S${q}</th>`).join("")}</tr>` +
+    ROTS.map(r => `<tr><th>S${r}</th>${ROTS.map(q => `<td class="${q === state.opStart ? "sel" : ""}" style="background:${heat(mx[q][r])}">${pct(mx[q][r])}</td>`).join("")}</tr>`).join("") + `</table>`;
+  const fs = { us: "自チームが先にサーブ", op: "相手が先にサーブ", avg: "先にサーブするのがどちらでも半々" }[state.firstServe];
+  $("#method").innerHTML = `<b>計算方法</b>：1ラリーを「サーブ（P1の選手）→レセプション（後衛の受け手とリベロ）→1本目のアタック（前衛・バックアタックの打数割合で重み付け、返球が良い／乱れたで決定率を変える）→相手前衛のブロック→切り返しの打ち合い」の順に、コートにいる選手のスタッツで計算します。サンプルが少ない選手はリーグ平均に寄せています。サイドアウトのたびに両チームのローテが回る流れを再現し、${state.target}点先取・デュースありのセットを取る確率を厳密に計算しています。条件：${fs}。<br>精度の目安：2014/15 V・プレミアリーグ女子72試合で、チーム×ローテごとのSO率を平均2.8ポイントの誤差で再現（データ自体のばらつきは約2.4ポイント）。数字は作戦を考える材料のひとつです。`;
+  $("#result").style.display = "block";
+  requestAnimationFrame(() => document.querySelectorAll(".fill").forEach(el => (el.style.width = el.dataset.w + "%")));
+  $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+const condKey = () => [T.us.team, T.op.team, state.opStart, state.firstServe, state.target].join("|");
+
+function segInit(id, key, cast) {
+  $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+    $(id).querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); state[key] = cast(b.dataset.v); changed(); });
+}
+$("#opp-start").innerHTML = ROTS.map(r => `<button data-v="${r}" class="${r === 1 ? "on" : ""}">S${r}</button>`).join("");
+segInit("#opp-start", "opStart", Number); segInit("#first-serve", "firstServe", String); segInit("#target", "target", Number);
+$("#file").addEventListener("change", e => { loadFiles([...e.target.files]); e.target.value = ""; });
+const drop = $("#drop");
+["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => loadFiles([...e.dataTransfer.files]));
+$("#go").addEventListener("click", run);
+manualTeam("us"); manualTeam("op"); renderTeam("us"); renderTeam("op");
+</script>
+</body>
+</html>
