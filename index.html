@@ -75,7 +75,9 @@ table.rs{border-collapse:collapse;font-size:13px;white-space:nowrap}
 .headline{background:var(--navy);color:#fff;border-radius:12px;padding:16px 20px;font-size:19px;margin:12px 0 18px}
 .headline b{color:var(--orange);font-family:Oswald,"Noto Sans JP",sans-serif;font-size:24px}
 .bars{display:flex;flex-direction:column;gap:12px}
-.bar{display:grid;grid-template-columns:150px 1fr 110px 120px;gap:14px;align-items:center}
+.bar{display:grid;grid-template-columns:150px 1fr 100px 150px 110px;gap:14px;align-items:center;cursor:pointer;border-radius:10px;padding:4px 6px}
+.bar:hover{background:#F3F5F8} .bar.sel{background:#FBEADB}
+.bar .sc{font-family:Oswald,"Noto Sans JP",sans-serif;font-size:18px;color:var(--sub)} .bar .sc small{font-size:13px;color:var(--mute)}
 .bar .lab{font-size:16px;color:var(--sub)} .bar .lab b{font-family:Oswald,sans-serif;font-size:24px;color:var(--ink);margin-right:4px}
 .track{position:relative;height:34px;background:var(--bg2);border-radius:8px;overflow:hidden}
 .fill{height:100%;background:#8A99AD;border-radius:8px;transition:width .5s ease}
@@ -85,7 +87,7 @@ table.rs{border-collapse:collapse;font-size:13px;white-space:nowrap}
 .bar .d{font-size:14px;color:var(--mute)} .bar .d.up{color:#1F7A4D;font-weight:700} .bar .d.dn{color:#B3261E;font-weight:700}
 .bar.best .fill{background:var(--orange)} .bar.best .v,.bar.best .lab b{color:var(--od)}
 .bar.worst .fill{background:#C7CFDA}
-.scale{display:grid;grid-template-columns:150px 1fr 110px 120px;gap:14px;font-size:12px;color:var(--mute);margin-top:2px}
+.scale{display:grid;grid-template-columns:150px 1fr 100px 150px 110px;padding:0 6px;gap:14px;font-size:12px;color:var(--mute);margin-top:2px}
 .scale div:nth-child(2){display:flex;justify-content:space-between}
 h4{font-size:16px;margin:24px 0 6px;color:var(--sub)}
 table.mx{border-collapse:collapse;font-size:14px}
@@ -95,6 +97,27 @@ table.mx{border-collapse:collapse;font-size:14px}
 .mx td.sel{outline:3px solid var(--od);outline-offset:-3px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .note{font-size:13px;color:var(--mute);margin-top:14px;line-height:1.8}
+.mu-head{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;margin:26px 0 4px}
+.mu-head h4{margin:0}
+.mu-score{font-family:Oswald,"Noto Sans JP",sans-serif;font-size:30px;font-weight:600}
+.mu-score small{font-size:15px;color:var(--mute);font-weight:500;margin-left:6px}
+.mus{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px;margin-top:10px}
+.mu{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff}
+.mu .t{display:flex;justify-content:space-between;align-items:baseline}
+.mu .t b{font-family:Oswald,sans-serif;font-size:20px}
+.mu .t .us{color:var(--navy)} .mu .t .op{color:var(--od)}
+.mu .pm{font-family:Oswald,"Noto Sans JP",sans-serif;font-size:22px;font-weight:600}
+.mu .pm.plus{color:#1F7A4D} .mu .pm.minus{color:#B3261E}
+.mu .sub{font-size:13px;color:var(--mute);margin:2px 0 8px}
+.fr{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.fr div{font-size:13px;text-align:center;border-radius:6px;padding:4px 2px;line-height:1.3;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.fr div small{display:block;font-size:11px;opacity:.8}
+.fr.op div{background:#FBEADB;color:var(--od)} .fr.us div{background:#E6ECF2;color:var(--navy)}
+.netl{border-top:3px solid var(--navy);margin:5px 0;position:relative}
+.netl span{position:absolute;right:0;top:-10px;background:#fff;padding:0 4px;font-family:Oswald,sans-serif;font-size:10px;letter-spacing:.2em;color:var(--mute)}
+.mu .rates{display:flex;gap:14px;font-size:13px;color:var(--sub);margin-top:8px}
+.mu .rates b{font-family:Oswald,"Noto Sans JP",sans-serif;font-size:15px;color:var(--ink)}
+.more{margin-top:10px}
 @media (max-width:900px){.lineup,.two{grid-template-columns:1fr}.court{grid-template-columns:repeat(3,1fr)}.bar,.scale{grid-template-columns:90px 1fr 70px 70px}.opts{grid-template-columns:1fr}}
 </style>
 </head>
@@ -137,7 +160,12 @@ table.mx{border-collapse:collapse;font-size:14px}
   <h2><span class="n">4</span>結果：自チームのスタートローテ別の勝率</h2>
   <div class="headline" id="headline"></div>
   <div class="bars" id="bars"></div>
-  <div class="scale"><div></div><div><span>0%</span><span>50%</span><span>100%</span></div><div></div><div></div></div>
+  <div class="scale"><div></div><div><span>0%</span><span>50%</span><span>100%</span></div><div style="text-align:right">勝率</div><div>予想スコア</div><div></div></div>
+  <p class="hint" style="margin-top:8px">行をクリックすると、そのスタートのマッチアップを下に表示します。予想スコアは1セットの平均得点です。</p>
+  <div class="mu-head"><h4 id="mu-title"></h4><div class="mu-score" id="mu-score"></div></div>
+  <p class="hint" id="mu-note"></p>
+  <div class="mus" id="mus"></div>
+  <details class="more" id="mu-more-wrap"><summary id="mu-more-sum"></summary><div class="mus" id="mus-more"></div></details>
   <h4>この対戦で予想されるローテ別のSO率・BP率</h4>
   <div class="two" id="rotpred"></div>
   <details style="margin-top:18px"><summary>相手のスタートが読めないとき：全組み合わせの表</summary>
@@ -419,6 +447,43 @@ function winByStart(tab, opStart, firstServe, target) {
   }
   return res;
 }
+
+// 1セットの流れを最初から追い、マッチアップ（自ローテ×相手ローテ）ごとのラリー数・得失点と、平均スコアを出す
+function setFlow(tab, usStart, opStart, usServesFirst, target) {
+  const CAP = target + 30, idx = (r, q, s) => ((r - 1) * 6 + (q - 1)) * 2 + (s ? 1 : 0);
+  const vis = new Float64Array(72), net = new Float64Array(72);
+  let cur = new Map([[`0,0,${idx(usStart, opStart, usServesFirst)}`, 1]]), Ea = 0, Eb = 0, win = 0;
+  for (let t = 0; t < 2 * CAP && cur.size; t++) {
+    const nxt = new Map(), add = (a, b, k, m) => { const key = `${a},${b},${k}`; nxt.set(key, (nxt.get(key) || 0) + m); };
+    for (const [key, m] of cur) {
+      const [a, b, k] = key.split(",").map(Number);
+      if ((a >= target && a - b >= 2) || (b >= target && b - a >= 2) || a >= CAP || b >= CAP) {
+        Ea += m * a; Eb += m * b; if (a > b) win += m; else if (a === b) win += m / 2; continue;
+      }
+      const s = k % 2 === 1, q = Math.floor(k / 2) % 6 + 1, r = Math.floor(k / 12) + 1;
+      vis[k] += m;
+      if (s) { const x = 1 - tab.soOp[r][q]; net[k] += m * (2 * x - 1); add(a + 1, b, idx(r, q, true), m * x); add(a, b + 1, idx(r, nextRot(q), false), m * (1 - x)); }
+      else { const x = tab.soUs[r][q]; net[k] += m * (2 * x - 1); add(a + 1, b, idx(nextRot(r), q, true), m * x); add(a, b + 1, idx(r, q, false), m * (1 - x)); }
+    }
+    cur = nxt;
+  }
+  const mu = [];
+  for (const r of ROTS) for (const q of ROTS) {
+    const kS = idx(r, q, true), kR = idx(r, q, false), v = vis[kS] + vis[kR];
+    if (v > 1e-6) mu.push({ r, q, rallies: v, serve: vis[kS], recv: vis[kR], net: net[kS] + net[kR] });
+  }
+  return { Ea, Eb, win, matchups: mu };
+}
+function flowByStart(tab, usStart, opStart, firstServe, target) {
+  if (firstServe !== "avg") return setFlow(tab, usStart, opStart, firstServe === "us", target);
+  const A = setFlow(tab, usStart, opStart, true, target), B = setFlow(tab, usStart, opStart, false, target), map = new Map();
+  for (const [F, w] of [[A, 0.5], [B, 0.5]]) for (const m of F.matchups) {
+    const k = m.r * 10 + m.q, o = map.get(k) || { r: m.r, q: m.q, rallies: 0, serve: 0, recv: 0, net: 0 };
+    for (const f of ["rallies", "serve", "recv", "net"]) o[f] += w * m[f];
+    map.set(k, o);
+  }
+  return { Ea: (A.Ea + B.Ea) / 2, Eb: (A.Eb + B.Eb) / 2, win: (A.win + B.win) / 2, matchups: [...map.values()] };
+}
 // ===== ENGINE END =====
 
 
@@ -587,10 +652,15 @@ function run() {
   const gap = ((res[best] - res[worst]) * 100).toFixed(1);
   $("#headline").innerHTML = `${esc(T.op.label)}が <b>S${state.opStart}</b> スタートなら、${esc(T.us.label)}は <b>S${best}</b> スタートがいちばん勝率が高い（<b>${pct(res[best])}</b>）。いちばん低いのは S${worst} スタート（${pct(res[worst])}）。その差は <b>${gap}</b> ポイント。`;
   const prev = state.prev && state.prev.key === condKey() ? state.prev.res : null;
-  $("#bars").innerHTML = ROTS.map(r => { const d = prev ? (res[r] - prev[r]) * 100 : null;
-    return `<div class="bar ${r === best ? "best" : r === worst ? "worst" : ""}"><div class="lab"><b>S${r}</b>スタート</div>
+  const flows = {}; ROTS.forEach(r => (flows[r] = flowByStart(tab, r, state.opStart, state.firstServe, state.target)));
+  const f1 = x => x.toFixed(1);
+  $("#bars").innerHTML = ROTS.map(r => { const d = prev ? (res[r] - prev[r]) * 100 : null, F = flows[r], df = F.Ea - F.Eb;
+    return `<div class="bar ${r === best ? "best" : r === worst ? "worst" : ""}" data-r="${r}"><div class="lab"><b>S${r}</b>スタート</div>
     <div class="track"><div class="fill" style="width:0%" data-w="${(res[r] * 100).toFixed(1)}"></div><div class="half"></div>${prev ? `<div class="prev" style="left:${(prev[r] * 100).toFixed(1)}%" title="前回"></div>` : ""}</div>
-    <div class="v">${pct(res[r])}</div><div class="d ${d > 0.05 ? "up" : d < -0.05 ? "dn" : ""}">${prev ? `前回比 ${d >= 0 ? "+" : ""}${d.toFixed(1)}` : ""}</div></div>`; }).join("");
+    <div class="v">${pct(res[r])}</div><div class="sc">${f1(F.Ea)} − ${f1(F.Eb)} <small>(${df >= 0 ? "+" : ""}${f1(df)}点)</small></div>
+    <div class="d ${d > 0.05 ? "up" : d < -0.05 ? "dn" : ""}">${prev ? `前回比 ${d >= 0 ? "+" : ""}${d.toFixed(1)}` : ""}</div></div>`; }).join("");
+  document.querySelectorAll(".bar").forEach(b => b.addEventListener("click", () => showMatchups(tab, flows, +b.dataset.r)));
+  showMatchups(tab, flows, best);
   state.prev = { key: condKey(), res };
   // ローテ別予想（相手ローテ6通りの平均）
   const avg = f => ROTS.reduce((s, q) => s + f(q), 0) / 6;
@@ -607,6 +677,39 @@ function run() {
   $("#result").style.display = "block";
   requestAnimationFrame(() => document.querySelectorAll(".fill").forEach(el => (el.style.width = el.dataset.w + "%")));
   $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function shortName(team, num) {
+  const d = M.p(team, num); if (!d.name) return { n: num ? `#${num}` : "—", r: "" };
+  const parts = d.name.split(/\s+/); return { n: `${num} ${parts[0]}`, r: ROLE_JA[d.role] || "" };
+}
+function frontRow(t, rot, mirror) {
+  const c = courtAt(t.base, rot), order = mirror ? [1, 2, 3] : [3, 2, 1];   // 自チームは P4・P3・P2、相手は向かい側から見て P2・P3・P4
+  return order.map(i => { const x = shortName(t.team, c[i]); return `<div title="${esc(x.n)}">${esc(x.n)}<small>P${i + 1} ${x.r}</small></div>`; }).join("");
+}
+function showMatchups(tab, flows, r0) {
+  document.querySelectorAll(".bar").forEach(b => b.classList.toggle("sel", +b.dataset.r === r0));
+  const F = flows[r0], df = F.Ea - F.Eb, list = [...F.matchups].sort((a, b) => b.rallies - a.rallies);
+  $("#mu-title").textContent = `${T.us.label} S${r0}スタート × ${T.op.label} S${state.opStart}スタートのマッチアップ（1セットあたり）`;
+  $("#mu-score").innerHTML = `${F.Ea.toFixed(1)} − ${F.Eb.toFixed(1)}<small>平均 ${df >= 0 ? "+" : ""}${df.toFixed(1)}点</small>`;
+  $("#mu-note").textContent = "前衛の向かい合わせ：自チームのP4（レフト）の正面が相手のP2（ライト）。「平均比」は、自チームのいつものSO率・BP率で戦った場合と比べて、そのマッチアップで何点多く（少なく）取れるかです。1セットで回数の多い6つを表示しています。";
+  // 自チームの平均SO率・BP率（36通りの平均）に比べて何点多く取れるか
+  let aSO = 0, aBP = 0; ROTS.forEach(r => ROTS.forEach(q => { aSO += tab.soUs[r][q] / 36; aBP += (1 - tab.soOp[r][q]) / 36; }));
+  list.forEach(m => (m.ex = m.recv * 2 * (tab.soUs[m.r][m.q] - aSO) + m.serve * 2 * (1 - tab.soOp[m.r][m.q] - aBP)));
+  const maxAbs = Math.max(...list.map(m => Math.abs(m.ex / m.rallies)), 0.01);
+  const sg = x => (x >= 0 ? "+" : "") + x.toFixed(1);
+  const card = m => { const t = m.ex / m.rallies / maxAbs;
+    const bg = t >= 0 ? `rgba(31,122,77,${(0.04 + 0.14 * t).toFixed(2)})` : `rgba(179,38,30,${(0.04 + 0.14 * -t).toFixed(2)})`;
+    return `<div class="mu" style="background:${bg}"><div class="t"><span><b class="us">自 S${m.r}</b> × <b class="op">相手 S${m.q}</b></span>
+      <span class="pm ${m.ex > 0.05 ? "plus" : m.ex < -0.05 ? "minus" : ""}" title="自チームの平均的なSO率・BP率のときと比べた得失点">平均比 ${sg(m.ex)}点</span></div>
+      <div class="sub">約${m.rallies.toFixed(1)}ラリー（自チームの受け ${m.recv.toFixed(1)}／サーブ ${m.serve.toFixed(1)}）・得失点 ${sg(m.net)}点</div>
+      <div class="fr op">${frontRow(T.op, m.q, true)}</div><div class="netl"><span>NET</span></div><div class="fr us">${frontRow(T.us, m.r, false)}</div>
+      <div class="rates"><span>自チームSO率 <b>${pct(tab.soUs[m.r][m.q], 0)}</b></span><span>自チームBP率 <b>${pct(1 - tab.soOp[m.r][m.q], 0)}</b></span></div></div>`; };
+  const main = list.slice(0, 6), rest = list.slice(6);
+  $("#mus").innerHTML = main.map(card).join("");
+  $("#mus-more").innerHTML = rest.map(card).join("");
+  $("#mu-more-wrap").style.display = rest.length ? "" : "none";
+  $("#mu-more-sum").textContent = `ほかの組み合わせ（${rest.length}通り・1セットに${rest.reduce((a, m) => a + m.rallies, 0).toFixed(1)}ラリー）`;
 }
 const condKey = () => [T.us.team, T.op.team, state.opStart, state.firstServe, state.target].join("|");
 
